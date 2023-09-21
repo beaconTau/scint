@@ -66,15 +66,15 @@ class Scintillator():
         vo_mon = data[2] * Scintillator._voltageConversionFactor
         io_mon = data[3] * Scintillator._currentConversionFactor
         T_mon = self._temperatureConversionFunction(data[4])
-        status_partial = {
+        status_dict = {
             "channel": self.scint_channel,
             "serial port": self.port,
+            **HVstatus,
             "vo_set": vo_set,
             "vo_mon": vo_mon,
             "io_mon": io_mon,
             "T_mon": T_mon
         }
-        status_dict = status_partial | HVstatus
         return status_dict
     
     def printStatus(self):
