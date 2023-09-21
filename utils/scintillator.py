@@ -83,7 +83,7 @@ class Scintillator():
         status_msg = ""
         for key in status_dict:
             status_msg += f"{key} -- {status_dict[key]}\n"
-        return status_msg
+        print(status_msg)
     
     def HV_On(self):
         #Turns HV on
