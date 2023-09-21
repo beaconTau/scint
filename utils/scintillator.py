@@ -45,9 +45,7 @@ class Scintillator():
         sensor_connected = (status & 8) == 0
         sensor_in_specification = (status & 16) == 0
         temp_conv_ef = (status & 64) == 0
-        status_dict = {
-            "channel": self.scint_channel,
-            "serial port": self.port,
+        return {
             "high_voltage_on": high_voltage,
             "overcurrent_protection": overcurrent_protection,
             "current_in_specification": current_in_specification,
@@ -55,30 +53,38 @@ class Scintillator():
             "sensor_in_specification": sensor_in_specification,
             "temperature_conversion_effective": temp_conv_ef
         }
-        status_msg = ""
-        for key in status_dict:
-            status_msg += f"{key} -- {status_dict[key]}\n"
-        return status_msg
 
     def getStatus(self):
-        #Gets status of HV chip--voltages, temperatures, configuration settings
+        """Get the status dict of HV chip--voltages, temperatures, configuration settings"""
         response = self.sendCommand("pmt HPO\r")
         byte_string = b''.join(response[byte] for byte in range(99, len(response)-8))
         byte_list = self._separate_byte_string(byte_string)
         data = [int(byte.decode("ascii"), 16) for byte in byte_list] #turning that list into ints
-        assert len(data)==5
-        status = self.HVStatus(data[0])
+        assert len(data)==5, "Error: Channel not detected"
+        HVstatus = self.HVStatus(data[0])
         vo_set = data[1] * Scintillator._voltageConversionFactor
         vo_mon = data[2] * Scintillator._voltageConversionFactor
         io_mon = data[3] * Scintillator._currentConversionFactor
         T_mon = self._temperatureConversionFunction(data[4])
-        return {
-            "status": status,
+        status_partial = {
+            "channel": self.scint_channel,
+            "serial port": self.port,
             "vo_set": vo_set,
             "vo_mon": vo_mon,
             "io_mon": io_mon,
             "T_mon": T_mon
         }
+        status_dict = status_partial | HVstatus
+        return status_dict
+    
+    def printStatus(self):
+        """Give a nice print message outlining the status"""
+        status_dict = self.getStatus()
+        status_msg = ""
+        for key in status_dict:
+            status_msg += f"{key} -- {status_dict[key]}\n"
+        return status_msg
+    
     def HV_On(self):
         #Turns HV on
         command = "pmt HON\r"
