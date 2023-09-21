@@ -1,5 +1,5 @@
 """This file defines the Scintillator class holding immediate commands to the scintillator"""
-import serial
+from serial import Serial
 import time
 
 class Scintillator():
@@ -10,11 +10,16 @@ class Scintillator():
     _firstCoefficientConversionFactor = 5.225e-2
     _secondCoefficientConversionFactor = 1.507e-3
     
-    def __init__(self, scint_number = 1, serial_port = "/dev/ttyUSB0", baud_rate = 9600):
+    def __init__(self, scint_number = 1, serial_port = None, baud_rate = 9600):
 
-        self.ser = serial.Serial(serial_port, baud_rate)
-        self.scint = scint_number
-    
+        self.scint_channel = scint_number
+
+        if serial_port is None:     # if not given, assume by-id method
+            serial_id = f"usb-FTDI_USB-COM485_Plus4_FT4J7CE9-if0{int(scint_number-1)}-port0"
+            serial_port = f"/dev/serial/by-id/{serial_id}"
+        self.port = serial_port
+        self.ser = Serial(serial_port, baud_rate)
+
     
     def sendCommand(self, command):
         #sends a command over the serial interface and returns the response as a byte list.
@@ -40,7 +45,9 @@ class Scintillator():
         sensor_connected = (status & 8) == 0
         sensor_in_specification = (status & 16) == 0
         temp_conv_ef = (status & 64) == 0
-        return {
+        status_dict = {
+            "channel": self.scint_channel,
+            "serial port": self.port,
             "high_voltage_on": high_voltage,
             "overcurrent_protection": overcurrent_protection,
             "current_in_specification": current_in_specification,
@@ -48,6 +55,10 @@ class Scintillator():
             "sensor_in_specification": sensor_in_specification,
             "temperature_conversion_effective": temp_conv_ef
         }
+        status_msg = ""
+        for key in status_dict:
+            status_msg += f"{key} -- {status_dict[key]}\n"
+        return status_msg
 
     def getStatus(self):
         #Gets status of HV chip--voltages, temperatures, configuration settings
