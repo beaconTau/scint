@@ -1,30 +1,17 @@
+"""This file defines the Scintillator class holding immediate commands to the scintillator"""
 import serial
 import time
-import sys
 
-class scintillator():
+class Scintillator():
+
+    # private attributes to all instances
     _voltageConversionFactor = 1.812e-3
     _currentConversionFactor = 4.98e-3
     _firstCoefficientConversionFactor = 5.225e-2
     _secondCoefficientConversionFactor = 1.507e-3
-    @classmethod
-    def _temperatureConversionFunction(cls, x):
-        return (x * 1.907e-5 - 1.035) / (-5.5e-3)
-    
-    @classmethod
-    def bytes_to_string(cls, byte_list):
-        try:
-            string = b''.join(byte_list).decode("ascii")
-            return string
-        except Exception as e:
-            print(f"Error converting bytes to string: {e}")
-            return None
-    @classmethod
-    def separate_byte_string(cls, input_bytes):
-        separated_bytes = [input_bytes[i:i+4] for i in range(0, len(input_bytes), 4)]
-        return separated_bytes
     
     def __init__(self, scint_number = 1, serial_port = "/dev/ttyUSB0", baud_rate = 9600):
+
         self.ser = serial.Serial(serial_port, baud_rate)
         self.scint = scint_number
     
@@ -66,14 +53,14 @@ class scintillator():
         #Gets status of HV chip--voltages, temperatures, configuration settings
         response = self.sendCommand("pmt HPO\r")
         byte_string = b''.join(response[byte] for byte in range(99, len(response)-8))
-        byte_list = scintillator.separate_byte_string(byte_string)
+        byte_list = self._separate_byte_string(byte_string)
         data = [int(byte.decode("ascii"), 16) for byte in byte_list] #turning that list into ints
         assert len(data)==5
         status = self.HVStatus(data[0])
-        vo_set = data[1] * scintillator._voltageConversionFactor
-        vo_mon = data[2] * scintillator._voltageConversionFactor
-        io_mon = data[3] * scintillator._currentConversionFactor
-        T_mon = scintillator._temperatureConversionFunction(data[4])
+        vo_set = data[1] * Scintillator._voltageConversionFactor
+        vo_mon = data[2] * Scintillator._voltageConversionFactor
+        io_mon = data[3] * Scintillator._currentConversionFactor
+        T_mon = self._temperatureConversionFunction(data[4])
         return {
             "status": status,
             "vo_set": vo_set,
@@ -97,7 +84,7 @@ class scintillator():
         #Sets the High Voltage to any value between 40 and 60--the range that the MC accepts
         if voltage < 40 or voltage >60:
             raise ValueError("Voltage is not within the appropriate range! It should be between 40V and 60V.")
-        converted_voltage = voltage / scintillator._voltageConversionFactor
+        converted_voltage = voltage / Scintillator._voltageConversionFactor
         hex_string = hex(int(converted_voltage))[2:]  # Convert the integer to hex and remove the '0x' prefix
         command = "pmt HBV"+ hex_string+"\r"
         self.sendCommand(command)
@@ -106,7 +93,7 @@ class scintillator():
     def get_MC_status(self):
         command = "status\r"
         response = self.sendCommand(command)
-        return "Microcontroller Status: " + scintillator.bytes_to_string(response[8:17])+ ", " + scintillator.bytes_to_string(response[19:27])
+        return "Microcontroller Status: " + self._bytes_to_string(response[8:17])+ ", " + self._bytes_to_string(response[19:27])
 
 #    def lgsel(self, toggle):
 #        #Turns on or off the low gain select option based on user input
@@ -120,32 +107,27 @@ class scintillator():
     def customCommand(self, command):
         #Type a custom command string to send over to the microcontroller.
         response = self.sendCommand(command + "\r")
-        output = scintillator.bytes_to_string(response)
+        output = self._bytes_to_string(response)
         return output
 
     def help(self):
         #Displays a help message.
-        print(help(scintillator))
+        print(help(Scintillator))
+
+
+    # -- private methods --
+
+    def _temperatureConversionFunction(self, x):
+        return (x * 1.907e-5 - 1.035) / (-5.5e-3)
     
-if __name__ == "__main__":
-     # Check if an argument is provided
-    if len(sys.argv) < 2:
-        print("Please provide a range value as a command-line argument.")
-        sys.exit(1)
-    try:
-        range_value = int(sys.argv[1])
-    except ValueError:
-        print("Invalid range value. Please provide a valid integer.")
-        sys.exit(1)
-
-    scintillators = {}  # Use a dictionary to store instances
-    for i in range(range_value):
-        instance_name = f"scint_{i+1}"
-        instance = scintillator(scint_number = i+1)
-        scintillators[instance_name] = instance  # Store instance in the dictionary
-        print(f"Created instance: {instance_name}")
-
-    import code
-    code.interact(
-        "Interactive Scintillator Control\nUse 'scint_[scint number]' objects for access, scint_[i].help() shows functions",
-        local=scintillators)  # Use the dictionary as the local namespace
+    def _bytes_to_string(self, byte_list):
+        try:
+            string = b''.join(byte_list).decode("ascii")
+            return string
+        except Exception as e:
+            print(f"Error converting bytes to string: {e}")
+            return None
+    
+    def _separate_byte_string(self, input_bytes):
+        separated_bytes = [input_bytes[i:i+4] for i in range(0, len(input_bytes), 4)]
+        return separated_bytes
