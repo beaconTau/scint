@@ -8,6 +8,9 @@ Uses commands to control all scints simultaneously, or a single scint.
 
 import sys
 from utils.scintillators import Scintillators
+
+# for interactive
+import code
     
 if __name__ == "__main__":
      # Check if an argument is provided
@@ -20,14 +23,10 @@ if __name__ == "__main__":
         print("Invalid range value. Please provide a valid integer.")
         sys.exit(1)
 
-    scintillators = {}  # Use a dictionary to store instances
-    for i in range(range_value):
-        instance_name = f"scint_{i+1}"
-        instance = Scintillator(scint_number = i+1)
-        scintillators[instance_name] = instance  # Store instance in the dictionary
-        print(f"Created instance: {instance_name}")
+    scintillators = {"scint" : Scintillators(number_of_scints = range_value)}  # Use a dictionary to store instances
+    
+    print(f"Created instance: scint")
 
-    import code
     code.interact(
         "Interactive Scintillator Control\nUse 'scint_[scint number]' objects for access, scint_[i].help() shows functions",
         local=scintillators)  # Use the dictionary as the local namespace
