@@ -60,12 +60,21 @@ class Scintillator():
         byte_string = b''.join(response[byte] for byte in range(99, len(response)-8))
         byte_list = self._separate_byte_string(byte_string)
         data = [int(byte.decode("ascii"), 16) for byte in byte_list] #turning that list into ints
-        assert len(data)==5, "Channel not detected"
-        HVstatus = self.HVStatus(data[0])
-        vo_set = data[1] * Scintillator._voltageConversionFactor
-        vo_mon = data[2] * Scintillator._voltageConversionFactor
-        io_mon = data[3] * Scintillator._currentConversionFactor
-        T_mon = self._temperatureConversionFunction(data[4])
+        if len(data)==5:
+            HVstatus = self.HVStatus(data[0])
+            vo_set = data[1] * Scintillator._voltageConversionFactor
+            vo_mon = data[2] * Scintillator._voltageConversionFactor
+            io_mon = data[3] * Scintillator._currentConversionFactor
+            T_mon = self._temperatureConversionFunction(data[4])
+        else:
+            print(f"Warning: Scintillator channel {self.scint_channel} not detected")
+            HVstatus = self.HVStatus(0)
+            for key in HVstatus:
+                HVstatus[key] = -1
+            vo_set = -1
+            vo_mon = -1
+            io_mon = -1
+            T_mon = -1
         status_dict = {
             "channel": self.scint_channel,
             "serial port": self.port,

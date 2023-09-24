@@ -1,3 +1,11 @@
+"""
+Usage:
+python3 run_single.py <number of scint channels>
+
+Runs interactive code with Scintillator instances corresponding to each scint channel.
+Uses commands for a single scint at a time.
+"""
+
 import sys
 from utils.scintillator import Scintillator
     
