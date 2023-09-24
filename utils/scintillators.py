@@ -47,7 +47,7 @@ class Scintillators():
 
         self.scints = []
         for scint_i in range(number_of_scints):
-            self.scints.append(Scintillator(scint_number=scint_i, serial_port=self.ports[scint_i], baud_rate=baud_rate))
+            self.scints.append(Scintillator(scint_number=scint_i+1, serial_port=self.ports[scint_i], baud_rate=baud_rate))
 
     
     @property
