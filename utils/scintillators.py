@@ -70,28 +70,50 @@ class Scintillators():
         status_dict = self.status
 
         # formatting, keep track of longest names in each column
-        maxChars = []
-
-        # initialize
+        customTab = " "*4
+        tabLen = len(customTab)
+        fixedMax = 10    # a fixed absolute max for column entries
         key0 = list(status_dict.keys())[0]
-        maxChars.append(len(key0))
-        for element in status_dict[key0]:
-            maxChars.append(len(str(element)))
+        maxChars = [len(key0)] + list(map(lambda x: len(str(x)), status_dict[key0]))  # for each col, get max length
 
         # iterate through entire dict
         for key in status_dict:
             maxChars[0] = max(maxChars[0], len(key))
             for ind, element in enumerate(status_dict[key]):
                 maxChars[ind+1] = max(maxChars[ind+1], len(str(element)))
+        
+        # limit max by overflow max
+        for i in range(len(maxChars)):
+            maxChars[i] = min(maxChars[i], fixedMax)
 
         # prepare status message string
-        status_msg = "-"*(sum(maxChars) + 8*(len(maxChars)-1)) + '\n'
+        status_msg = "-+" + "-"*(maxChars[0]+tabLen*2-2) + '+'
+        for maxChar in maxChars[1:]:
+            status_msg += "-"*(maxChar+tabLen*2) + '+'
+        status_msg += "-\n"
         for key in status_dict:
-            header = key + ' '*(maxChars[0] - len(key))
-            cols = [str(element) + ' '*(maxChars[ind+1] - len(str(element))) for ind, element in enumerate(status_dict[key])]
-            status_msg += "{0}\t-+-\t{1}\n".format(header, '\t'.join(cols))
-        status_msg += "-"*(sum(maxChars) + 8*(len(maxChars)-1)) + '\n'
+            cols = [key] + list(map(str, status_dict[key])) # full entry strings
+            overflowRows = 0  # number of overflow rows
+            sep = '|'     # sep between header and values
+            entries = []    # character limited entry strings
+            for ind, col in enumerate(cols):
+                overflowRows = max(overflowRows, len(col) // (fixedMax+1))
 
+                # get entries per column, truncate by max length
+                entry = col[:maxChars[ind]]
+                entries.append(entry + ' '*(maxChars[ind] - len(entry)))
+
+            for row in range(overflowRows+1):
+                status_msg += "{0}{1}{2}{3}{4}{5}\n".format(customTab, entries[0], customTab, sep, customTab, (customTab*2+' ').join(entries[1:]))
+                for ind, col in enumerate(cols):
+                    entry = col[maxChars[ind]*(row+1):maxChars[ind]*(row+2)]
+                    entries[ind] = (entry + ' '*(maxChars[ind] - len(entry)))
+            
+            status_msg += "-+" + "-"*(maxChars[0]+tabLen*2-2) + '+'
+            for maxChar in maxChars[1:]:
+                status_msg += "-"*(maxChar+tabLen*2) + '+'
+            status_msg += "-\n"
+                
         print(status_msg)
 
     def help(self):
