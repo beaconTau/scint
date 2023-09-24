@@ -72,12 +72,13 @@ class Scintillators():
         # formatting, keep track of longest names in each column
         customTab = " "*4
         tabLen = len(customTab)
-        fixedMax = 10    # a fixed absolute max for column entries
+        fixedMax = 15    # a fixed absolute max for column entries
         key0 = list(status_dict.keys())[0]
         maxChars = [len(key0)] + list(map(lambda x: len(str(x)), status_dict[key0]))  # for each col, get max length
 
         # iterate through entire dict
         for key in status_dict:
+            maxChars[0] = max(maxChars[0], len(str(key)))
             for ind, element in enumerate(status_dict[key]):
                 maxChars[ind+1] = max(maxChars[ind+1], len(str(element)))
         
@@ -104,7 +105,7 @@ class Scintillators():
 
             for row in range(overflowRows+1):
                 status_msg += "{0}{1}{2}{3}{4}{5}\n".format(customTab, entries[0], customTab, sep, customTab, (customTab*2+' ').join(entries[1:]))
-                entries[0] = ' '
+                entries[0] = ' '*maxChars[0]
                 for i, col in enumerate(cols[1:]):
                     ind = i + 1
                     entry = col[maxChars[ind]*(row+1):maxChars[ind]*(row+2)]
