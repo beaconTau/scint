@@ -78,12 +78,12 @@ class Scintillators():
 
         # iterate through entire dict
         for key in status_dict:
-            maxChars[0] = max(maxChars[0], len(key))
+            # maxChars[0] = max(maxChars[0], len(key))
             for ind, element in enumerate(status_dict[key]):
                 maxChars[ind+1] = max(maxChars[ind+1], len(str(element)))
         
         # limit max by overflow max
-        for i in range(len(maxChars)):
+        for i in range(1, len(maxChars)):
             maxChars[i] = min(maxChars[i], fixedMax)
 
         # prepare status message string
