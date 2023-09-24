@@ -33,6 +33,8 @@ class Scintillators():
     -------
     printStatus()
         Print a table sumarizing the status of the scintillators
+    runMethod(method, *args, **kwargs)
+        Run a Scintillator method for all scintillators. *args and **kwargs should be for the requested method.
     
     """
 
@@ -117,7 +119,22 @@ class Scintillators():
             status_msg += "-\n"
                 
         print(status_msg)
+    
+    def runMethod(self, method, *args, **kwargs):
+        """Run a Scintillator method for all scintillators"""
+        for scint in self.scints:
+            try:
+                scintMethod = getattr(scint, method)
+                scintMethod(*args, **kwargs)
+                print(f"Command successfully sent to Scintillator {scint.scint_channel}")
+            except AttributeError:
+                raise AttributeError(f"Class 'Scintillator' does not have method '{method}'")
+            except Exception as e:
+                print(f'Scintillator {scint.scint_channel} raised an error: {e}')
+                pass
 
     def help(self):
         """Display help message"""
-        print(help(Scintillators))
+        print(Scintillators.__doc__)
+        print("\nYou can use the following methods from the Scintillator class in runMethod():\n")
+        print(Scintillator.__doc__)
