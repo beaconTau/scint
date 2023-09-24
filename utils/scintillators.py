@@ -3,7 +3,7 @@
 from utils.scintillator import Scintillator
 
 
-def Scintillators():
+class Scintillators():
     """
     Handles scintillator commands simultaneously for all scintillator channels given.
     An individual scintillator channel can also be used via the scints attribute.
