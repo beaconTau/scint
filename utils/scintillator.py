@@ -3,6 +3,50 @@ from serial import Serial
 import time
 
 class Scintillator():
+    """
+    This class handles all commands for controlling a scintillator channel via Serial connection.
+
+    Parameters
+    ----------
+    scint_number : int
+        The label describing the scintillator channel.
+    serial_port : str
+        The serial port path for connecting via Serial. If None (default), then the device path is
+        assumed to be in /dev/serial/by-id/ with ID "usb-FTDI_USB-COM485_Plus4_FT4J7CE9-if0{scint_number - 1}-port0".
+    baud_rate : int
+        The baud rate for connection via Serial. Default 9600.
+
+    Attributes
+    ----------
+    scint_channel
+        The label describing the scintillator channel
+    port
+        The serial port path
+    ser
+        The Serial instance
+    help
+        The class docstring
+    
+    Methods
+    -------
+    sendCommand(command)
+        Send a command over serial interface
+    getHVStatus(status)
+        Get HV status returned from HPO command (whose result must be used as input)
+    getStatus()
+        Return a dictionary of status values
+    printStatus()
+        Print the status elements
+    HV_On()
+        Turn on high voltage
+    HV_Off()
+        Turn off high voltage
+    HV_Set(voltage)
+        Set high voltage to given voltage value. Must be between 40 and 60 V
+    getMCStatus
+        Return status of the microcontroller
+    
+    """
 
     # private attributes to all instances
     _voltageConversionFactor = 1.812e-3
@@ -20,6 +64,10 @@ class Scintillator():
         self.port = serial_port
         self.ser = Serial(serial_port, baud_rate)
 
+
+    @property
+    def help(self):
+        return Scintillator.__doc__
     
     def sendCommand(self, command):
         #sends a command over the serial interface and returns the response as a byte list.
@@ -37,8 +85,9 @@ class Scintillator():
                 break
         return(response)
     
-    def HVStatus(self, status):
+    def getHVStatus(self, status):
         #Interprets the bytes returned by HPO to help give the HV status
+
         high_voltage = (status & 1) != 0
         overcurrent_protection = (status & 2) != 0
         current_in_specification = (status & 4) == 0
@@ -61,14 +110,14 @@ class Scintillator():
         byte_list = self._separate_byte_string(byte_string)
         data = [int(byte.decode("ascii"), 16) for byte in byte_list] #turning that list into ints
         if len(data)==5:
-            HVstatus = self.HVStatus(data[0])
+            HVstatus = self.getHVStatus(data[0])
             vo_set = data[1] * Scintillator._voltageConversionFactor
             vo_mon = data[2] * Scintillator._voltageConversionFactor
             io_mon = data[3] * Scintillator._currentConversionFactor
             T_mon = self._temperatureConversionFunction(data[4])
         else:
             print(f"Warning: Scintillator channel {self.scint_channel} not detected")
-            HVstatus = self.HVStatus(0)
+            HVstatus = self.getHVStatus(0)
             for key in HVstatus:
                 HVstatus[key] = -1
             vo_set = -1
@@ -106,7 +155,7 @@ class Scintillator():
         self.sendCommand(command)
         return "High Voltage Off!"
 
-    def set_HV(self, voltage):
+    def HV_Set(self, voltage):
         #Sets the High Voltage to any value between 40 and 60--the range that the MC accepts
         if voltage < 40 or voltage >60:
             raise ValueError("Voltage is not within the appropriate range! It should be between 40V and 60V.")
@@ -116,7 +165,7 @@ class Scintillator():
         self.sendCommand(command)
         return "HV set to "+ str(voltage) +"V"
 
-    def get_MC_status(self):
+    def getMCStatus(self):
         command = "status\r"
         response = self.sendCommand(command)
         return "Microcontroller Status: " + self._bytes_to_string(response[8:17])+ ", " + self._bytes_to_string(response[19:27])
@@ -130,15 +179,11 @@ class Scintillator():
 #        byte_string = scintillator.bytes_to_string(response[9:18])
 #        return byte_string
 
-    def customCommand(self, command):
-        #Type a custom command string to send over to the microcontroller.
-        response = self.sendCommand(command + "\r")
-        output = self._bytes_to_string(response)
-        return output
-
-    def help(self):
-        #Displays a help message.
-        print(help(Scintillator))
+    # def customCommand(self, command):
+    #     #Type a custom command string to send over to the microcontroller.
+    #     response = self.sendCommand(command + "\r")
+    #     output = self._bytes_to_string(response)
+    #     return output
 
 
     # -- private methods --
