@@ -78,7 +78,6 @@ class Scintillators():
 
         # iterate through entire dict
         for key in status_dict:
-            # maxChars[0] = max(maxChars[0], len(key))
             for ind, element in enumerate(status_dict[key]):
                 maxChars[ind+1] = max(maxChars[ind+1], len(str(element)))
         
@@ -105,7 +104,9 @@ class Scintillators():
 
             for row in range(overflowRows+1):
                 status_msg += "{0}{1}{2}{3}{4}{5}\n".format(customTab, entries[0], customTab, sep, customTab, (customTab*2+' ').join(entries[1:]))
-                for ind, col in enumerate(cols):
+                entries[0] = ' '
+                for i, col in enumerate(cols[1:]):
+                    ind = i + 1
                     entry = col[maxChars[ind]*(row+1):maxChars[ind]*(row+2)]
                     entries[ind] = (entry + ' '*(maxChars[ind] - len(entry)))
             
