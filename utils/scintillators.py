@@ -1,6 +1,6 @@
 """Class for handling multiple scintillator instances at once"""
 
-from scintillator import Scintillator
+from utils.scintillator import Scintillator
 
 
 def Scintillators():
