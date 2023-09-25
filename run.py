@@ -31,7 +31,7 @@ if __name__ == "__main__":
         f"Created Scintillators instance 'scint' with {range_value} channels.\n\n"+
         "To view current status use 'scint.printStatus()'.\n"+
         "To run command for all scints, use 'scint.runMethod(method, *args, **kwargs)'\n"+
-        "To run a command for a single scintillator channel, use 'scint.scints[channel_number]' to access Scintillator methods and atrributes\n\n"+
+        "To run a command for a single scintillator channel, use 'scint.scints[channel_number - 1]' to access Scintillator methods and atrributes\n\n"+
         "To view all available commands, use 'scint.help()'\n"+
         "="*20+"\n",
         local=scintillators)  # Use the dictionary as the local namespace
