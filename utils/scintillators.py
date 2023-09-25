@@ -5,6 +5,8 @@ from utils.scintillator import Scintillator
 
 class Scintillators():
     """
+    Scintillators
+
     Handles scintillator commands simultaneously for all scintillator channels given.
     An individual scintillator channel can also be used via the scints attribute.
 
