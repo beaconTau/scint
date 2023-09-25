@@ -25,8 +25,13 @@ if __name__ == "__main__":
 
     scintillators = {"scint" : Scintillators(number_of_scints = range_value)}  # Use a dictionary to store instances
     
-    print(f"Created instance: scint")
+    print("="*20+"\n")
+    print(f"Created Scintillator instance 'scint' with {range_value} channels.")
 
     code.interact(
-        "Interactive Scintillator Control\nUse 'scint_[scint number]' objects for access, scint_[i].help() shows functions",
+        "Interactive Scintillator Control\nTo view current status use 'scint.printStatus()'."+
+        "\nTo run command for all scints, use 'scint.runMethod(method,*args,**kwargs)'\n"+
+        "To view available commands, use 'scint.help()'\n"+
+        "To run a command for a single scintillator channel, use 'scint.scints[channel_number]' to access Scintillator methods and atrributes\n"+
+        "="*20+"\n",
         local=scintillators)  # Use the dictionary as the local namespace

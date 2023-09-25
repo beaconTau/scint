@@ -1,7 +1,5 @@
 # scint
-Commands related to scintillator controls and data handling
+Commands related to scintillator controls
 
 To run:
-```python3 main.py {number_of_scints}```
-
-The code is currently interactive with commands on one scintillator at a time.
+```python3 run.py {number of scintillator channels}```
