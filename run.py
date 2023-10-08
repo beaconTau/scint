@@ -1,37 +1,47 @@
 """
 Usage:
-python3 run.py <number of scint channels>
+python3 run.py [scint_number] [command] [command_args]
 
-Runs interactive code with Scintillators instance.
-Uses commands to control all scints simultaneously, or a single scint.
+For all scints, scint_number = 'all', otherwise 1-4
+
+Runs scintillator code.
+Uses a command to control all scints simultaneously, or a single scint.
 """
 
 import sys
 from utils.scintillators import Scintillators
+from utils.scintillator import Scintillator
 
 # for interactive
 import code
     
 if __name__ == "__main__":
-     # Check if an argument is provided
-    if len(sys.argv) < 2:
-        print("Please provide a range value as a command-line argument.")
-        sys.exit(1)
-    try:
-        range_value = int(sys.argv[1])
-    except ValueError:
-        print("Invalid range value. Please provide a valid integer.")
+    # Check if an argument is provided
+    if len(sys.argv) < 3:
+        help_msg = "Run a command for all scints or a single scint.\n\nUsage:\npython3 run.py [scint_number] [command] [command args]\n\nFor all scints, scint_number = 'all', otherwise 1-4\n\nList of commands:\n-----------------\nIf all scints:\n    printStatus()\n\tPrint a table sumarizing the status of all scintillators\n\nAll or Single scint:"+Scintillator.__doc__.split('-------')[-1]
+        print(help_msg)
         sys.exit(1)
 
-    scintillators = {"scint" : Scintillators(number_of_scints = range_value)}  # Use a dictionary to store instances
+    scint_num = sys.argv[1]
+    cmd = sys.argv[2]
+    cmd_args = sys.argv[3:]
 
-    code.interact(
-        "="*20+"\n"
-        "Interactive Scintillator Control\n\n"+
-        f"Created Scintillators instance 'scint' with {range_value} channels.\n\n"+
-        "To view current status use 'scint.printStatus()'\n"+
-        "To run command for all scints, use 'scint.runMethod(method, *args, **kwargs)'\n"+
-        "To run a command for a single scintillator channel, use 'scint.scints[channel_number - 1]' to access Scintillator methods and attributes\n\n"+
-        "To view all available commands, use 'scint.help()'\n"+
-        "="*20+"\n",
-        local=scintillators)  # Use the dictionary as the local namespace
+    if scint_num == 'all':
+        # do cmd with all scints
+        scint = Scintillators(number_of_scints=4)
+        scint.runMethod(cmd, *cmd_args)
+    elif int(scint_num) in [1,2,3,4]:
+        # do cmd with scint int(scint_num)
+        scint = Scintillator(scint_number=int(scint_num))
+        try:
+            scintMethod = getattr(scint, cmd)
+            scintMethod(*cmd_args)
+            print(f"Command successfully sent to Scintillator {scint.scint_channel}")
+            sys.exit(1)
+        except AttributeError:
+            raise AttributeError(f"Class 'Scintillator' does not have command '{cmd}'")
+        except Exception as e:
+            print(f'Scintillator {scint.scint_channel} raised an error: {e}')
+            sys.exit(1)
+    else:
+        raise ValueError('scint_number invalid')
