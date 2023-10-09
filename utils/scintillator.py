@@ -68,8 +68,6 @@ class Scintillator():
         self.port = serial_port
         self.ser = Serial(serial_port, baud_rate)
 
-        self.HV = None
-
 
     @property
     def help(self):
@@ -114,7 +112,6 @@ class Scintillator():
         classStatus = {
             "channel": self.scint_channel,
             "serial port": self.port,
-            "HV set": self.HV,
         }
         response = self.sendCommand("pmt HPO\r")
         byte_string = b''.join(response[byte] for byte in range(99, len(response)-8))
@@ -128,7 +125,6 @@ class Scintillator():
             T_mon = self._temperatureConversionFunction(data[4])
         else:
             print(f"Warning: Scintillator channel {self.scint_channel} not detected")
-            self.HV = None
             classStatus['HV set'] = None
             HVstatus = self.getHVStatus(0)
             for key in HVstatus:
@@ -171,7 +167,6 @@ class Scintillator():
         #Sets the High Voltage to any value between 40 and 60--the range that the MC accepts
         if voltage < 40 or voltage >60:
             raise ValueError("Voltage is not within the appropriate range! It should be between 40V and 60V.")
-        self.HV = voltage
         converted_voltage = voltage / Scintillator._voltageConversionFactor
         hex_string = hex(int(converted_voltage))[2:]  # Convert the integer to hex and remove the '0x' prefix
         command = "pmt HBV"+ hex_string+"\r"
